@@ -765,7 +765,7 @@ class Joint(Pmf):
         val: the value the jth variable has to have
 
         Returns: Pmf
-        """
+        """          
         pmf = Pmf(label=label)
         for vs, prob in self.Items():
             if vs[j] != val:
