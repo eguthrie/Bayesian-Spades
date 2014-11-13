@@ -11,7 +11,7 @@ Deck: represents a deck of cards probability mass function (map from values to p
 
 """
 
-from thinkbayes2 import Pmf
+from thinkbayes2 import *
 from thinkplot	 import *
 import random
 
@@ -25,13 +25,16 @@ class Card(object):
     """
 
     suit_names = ["Clubs", "Diamonds", "Hearts", "Spades"]
-    rank_names = [None, "Ace", "2", "3", "4", "5", "6", "7", 
-              "8", "9", "10", "Jack", "Queen", "King"]
+    rank_names = [None, "Ace", "King", "Queen", "Jack", "10",
+    				"9","8","7","6","5","4","3","2"]
 
     def __init__(self, suit=0, rank=2):
         self.suit = suit
         self.rank = rank
-
+        if suit == 3:
+        	self.prob= (53-rank)/52.0
+        else:
+			self.prob= .25*((39-rank)/52.0)
     def __str__(self):
         """Returns a human-readable string representation."""
         return '%s of %s' % (Card.rank_names[self.rank],
@@ -56,14 +59,10 @@ class Deck(object):
     """
     def __init__(self):
         self.cards = []
-        d = {}
         for suit in range(4):
             for rank in range(1, 14):
-            	if suit == 0:
-            		d[("spades",rank_names[self.rank])]= (53-rank)/52.0
                 card = Card(suit, rank)
                 self.cards.append(card)
-        print d
 
     def __str__(self):
         res = []
@@ -109,7 +108,11 @@ class Hand(Deck):
     def __init__(self, label=''):
         self.cards = []
         self.label = label
-        self.pmf=
+        self.d     = {}
+    def make_pmf(self):
+    	for card in self.cards:
+    		self.d[card]=card.prob
+    	print self.d
 
 
 # def find_defining_class(obj, method_name):
@@ -124,3 +127,10 @@ class Hand(Deck):
 #        if method_name in ty.__dict__:
 #            return ty
 #    return None
+if __name__ == '__main__':
+	mydeck=Deck()
+	hand= Hand()
+	mydeck.shuffle()
+	mydeck.move_cards(hand,13)
+	hand.make_pmf()
+	print(hand.d)
