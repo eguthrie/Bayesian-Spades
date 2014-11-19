@@ -13,6 +13,7 @@ Deck: represents a deck of cards probability mass function (map from values to p
 
 from thinkbayes2 import *
 from thinkplot	 import *
+from copy 		 import deepcopy
 import random
 
 
@@ -101,18 +102,49 @@ class Deck(object):
         """
         for i in range(num):
             hand.add_card(self.pop_card())
+    def run_scenarios(self, num):
+    	"""runs a number of scenarios of possible hand combinations 
+    	given a certain deck configuration where there is a hand's worth
+    	of cards removed.
+    	num: integer number of trials
+    	returns scen_distributions"""
+    	mytrialhand= Hand()
+    	self.shuffle()
+    	self.move_cards(mytrialhand,13)
+    	scen_distributions={}
+    	for i in range(num):
+      		theirtrialhand=Hand()
+    		self.move_cards(theirtrialhand,13)
+    		theirtrialhand.get_bid()
+    		theirtrial
+    		scen_distributions[deepcopy(theirtrialhand)]=theirtrialhand.bid
+    		theirtrialhand.move_cards(mydeck,13)
+    		mydeck.shuffle()
+
+    	return scen_distributions
+
+
+
 
 class Hand(Deck):
     """Represents a hand of playing cards."""
-    
-    def __init__(self, label=''):
+  
+    def __init__(self, label='', d={},bid=None):
         self.cards = []
         self.label = label
         self.d     = {}
+        self.bid   = 0
     def make_pmf(self):
     	for card in self.cards:
-    		self.d[card]=card.prob
-    	print self.d
+    		self.d[Card.rank_names[card.rank],Card.suit_names[card.suit]]=card.prob
+    	#print self.d
+    def get_bid(self):
+    	self.make_pmf()
+    	probs=self.d.values()
+    	bid= 0
+    	for val in probs:
+    		bid=bid+val
+    	self.bid=bid
 
 
 # def find_defining_class(obj, method_name):
@@ -129,8 +161,5 @@ class Hand(Deck):
 #    return None
 if __name__ == '__main__':
 	mydeck=Deck()
-	hand= Hand()
-	mydeck.shuffle()
-	mydeck.move_cards(hand,13)
-	hand.make_pmf()
-	print(hand.d)
+	print mydeck.run_scenarios(1000)
+	print("\n")
