@@ -117,7 +117,7 @@ class Deck(object):
     		self.move_cards(theirtrialhand,13)
     		theirtrialhand.get_bid()
     		theirtrial
-    		scen_distributions[deepcopy(theirtrialhand)]=theirtrialhand.bid
+    		scen_distributions[deepcopy(theirtrialhand)]=MakeNormalPMF(theirtrialhand.bid-.5,
     		theirtrialhand.move_cards(mydeck,13)
     		mydeck.shuffle()
 
