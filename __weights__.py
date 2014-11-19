@@ -7,7 +7,8 @@ Write up of project: http://www.website.com
 
 """This file contains class definitions for:
 
-Deck: represents a deck of cards probability mass function (map from values to probs).
+Deck: represents a deck of cards 
+Hand: represents a hand of cards
 
 """
 
@@ -102,29 +103,6 @@ class Deck(object):
         """
         for i in range(num):
             hand.add_card(self.pop_card())
-    def run_scenarios(self, theirbid, num):
-    	"""runs a number of scenarios of possible hand combinations 
-    	given a certain deck configuration where there is a hand's worth
-    	of cards removed.
-    	num: integer number of trials
-    	returns scen_distributions"""
-    	mytrialhand= Hand()
-    	self.shuffle()
-    	self.move_cards(mytrialhand,13)
-    	scen_distributions={}
-    	for i in range(num):
-      		theirtrialhand=Hand()
-    		self.move_cards(theirtrialhand,13)
-    		theirtrialhand.get_bid()
-    		print theirtrialhand.bid
-    		scen_distributions[deepcopy(theirtrialhand)]= EvalNormalPdf(theirbid, theirtrialhand.bid-.5,3.0/5)
-    		theirtrialhand.move_cards(mydeck,13)
-    		mydeck.shuffle()
-
-    	return scen_distributions
-
-
-
 
 class Hand(Deck):
     """Represents a hand of playing cards."""
@@ -134,6 +112,7 @@ class Hand(Deck):
         self.label = label
         self.d     = {}
         self.bid   = 0
+
     def make_pmf(self):
     	for card in self.cards:
     		self.d[Card.rank_names[card.rank],Card.suit_names[card.suit]]=card.prob
@@ -146,20 +125,32 @@ class Hand(Deck):
     		bid=bid+val
     	self.bid=bid
 
+def run_scenarios(mydeck, theirbid, num):
+    """runs a number of scenarios of possible hand combinations 
+    given a certain deck configuration where there is a hand's worth
+    of cards removed.
+    num: integer number of trials
+    returns scen_distributions"""
+    mytrialhand= Hand()
+    mydeck.shuffle()
+    mydeck.move_cards(mytrialhand,13)
+    scen_distributions={}
+    for i in range(num):
+    	theirtrialhand=Hand()
+    	mydeck.move_cards(theirtrialhand,13)
+    	theirtrialhand.get_bid()
+    	scen_distributions[deepcopy(theirtrialhand)]= EvalNormalPdf(theirbid, theirtrialhand.bid-.2,3.0/5)
+    	theirtrialhand.move_cards(mydeck,13)
+    	mydeck.shuffle()
+    return scen_distributions, mytrialhand
 
-# def find_defining_class(obj, method_name):
-    """Finds and returns the class object that will provide 
-    the definition of method_name (as a string) if it is
-    invoked on obj.
-
-    obj: any python object
-    method_name: string method name
-    """
-#    for ty in type(obj).mro():
-#        if method_name in ty.__dict__:
-#            return ty
-#    return None
 if __name__ == '__main__':
 	mydeck=Deck()
-	print mydeck.run_scenarios(4,4)
-	print("\n")
+	theirbid=5
+	dist,mytrialhand=run_scenarios(mydeck,theirbid,1000)
+	hands=[]
+	for key, value in dist.items():
+		hands.append((value,key))
+	hands.sort(reverse=True)
+	print 'Their bid was ',theirbid, '\n My hand was:\n', mytrialhand, '\n\n Their most likely hands are '
+	print hands[0][1], '\n Prob = ', hands[0][0], '\n\n', hands[1][1], '\n Prob = ', hands[1][0], '\n\n', hands[2][1], '\n Prob = ', hands[2][0] 
