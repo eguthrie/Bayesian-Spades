@@ -102,7 +102,7 @@ class Deck(object):
         """
         for i in range(num):
             hand.add_card(self.pop_card())
-    def run_scenarios(self, num):
+    def run_scenarios(self, theirbid, num):
     	"""runs a number of scenarios of possible hand combinations 
     	given a certain deck configuration where there is a hand's worth
     	of cards removed.
@@ -116,8 +116,8 @@ class Deck(object):
       		theirtrialhand=Hand()
     		self.move_cards(theirtrialhand,13)
     		theirtrialhand.get_bid()
-    		theirtrial
-    		scen_distributions[deepcopy(theirtrialhand)]=MakeNormalPMF(theirtrialhand.bid-.5,
+    		print theirtrialhand.bid
+    		scen_distributions[deepcopy(theirtrialhand)]= EvalNormalPdf(theirbid, theirtrialhand.bid-.5,3.0/5)
     		theirtrialhand.move_cards(mydeck,13)
     		mydeck.shuffle()
 
@@ -161,5 +161,5 @@ class Hand(Deck):
 #    return None
 if __name__ == '__main__':
 	mydeck=Deck()
-	print mydeck.run_scenarios(1000)
+	print mydeck.run_scenarios(4,4)
 	print("\n")
