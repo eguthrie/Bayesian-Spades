@@ -113,11 +113,11 @@ class Hand(Deck):
         self.bid   = 0
 
     def get_bid(self):
-    	d={}
+    	d=[]
     	bid=0
     	for card in self.cards:
-    		d[Card.rank_names[card.rank],Card.suit_names[card.suit]]=card.prob
-    	for val in d.values():
+    		d.append(card.prob)
+    	for val in d:
     		bid=bid+val
     	return bid
     def update(self):
@@ -125,9 +125,9 @@ class Hand(Deck):
 class Scenarios(thinkbayes2.Pmf):
 	"""PMF for scenarios of hands"""
 	def Likelihood(self,data,hypo):
-		guess = NormalPdf(hypo.bid-.5,3.0/5)
-		thinkplot.Pdf(guess)
-		thinkplot.Show()
+		guess = NormalPdf(hypo.bid-.5,3.0/5)  #normal 
+		#thinkplot.Pdf(guess)
+		#thinkplot.Show()
 		return guess.Density(data)
 
 	def Update(self, data):
@@ -135,6 +135,7 @@ class Scenarios(thinkbayes2.Pmf):
 			like = self.Likelihood(data, hypo)
 			self.Mult(hypo, like)
 		self.Normalize()
+
 
 def run_scenarios(mydeck, theirbid, num):
     """runs a number of scenarios of possible hand combinations 
@@ -145,18 +146,19 @@ def run_scenarios(mydeck, theirbid, num):
     mytrialhand= Hand()
     mydeck.shuffle()
     mydeck.move_cards(mytrialhand,13)
-    scen=Scenarios()
+    scen=Scenarios()						#new pmf of scenarios
     for i in range(num):
-    	theirtrialhand=Hand()
+    	theirtrialhand=Hand()				
     	mydeck.move_cards(theirtrialhand,13)
-    	theirtrialhand.update()
+    	theirtrialhand.update()				#updates hand score attribute
     	scen.Set(deepcopy(theirtrialhand),1)
-       	theirtrialhand.move_cards(mydeck,13)
+       	theirtrialhand.move_cards(mydeck,13)#resets the deck
     	mydeck.shuffle()
     scen.Update(theirbid)
     itms=[]
     for key, value in scen.d.items():
-    	itms.append((value,key))
+    	itms.append((value,key))			#sets up the list to sort by val
+    										#rather than key
     return sorted(itms, reverse=True)[:5], mytrialhand
 
 
