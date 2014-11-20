@@ -111,7 +111,7 @@ class Hand(Deck):
         self.cards = []
         self.label = label
         self.d     = {}
-        self.bid   = 0
+        self.bid   = self.get_bid()
 
     def make_pmf(self):
     	for card in self.cards:
@@ -123,7 +123,24 @@ class Hand(Deck):
     	bid= 0
     	for val in probs:
     		bid=bid+val
-    	self.bid=bid
+    	return bid
+class Scenarios(Pmf):
+	"""okaywhatthefuck"""
+	def __init__(self, hypos=[]):
+		Pmf.__init__(self)
+		for hypo in hypos:
+			self.Set(hypo, 1)
+		self.Normalize()
+
+	def Likelihood(self,data,hypo):
+		guess = NormalPdf(hypo.bid,3.0/5)
+		return guess.density(data)
+
+	def Update(self, data):
+		for hypo in self.Values():
+			like = self.Likelihood(data, hypo)
+			self.Mult(hypo, like)
+		return self.Normalize()
 
 def run_scenarios(mydeck, theirbid, num):
     """runs a number of scenarios of possible hand combinations 
@@ -134,23 +151,25 @@ def run_scenarios(mydeck, theirbid, num):
     mytrialhand= Hand()
     mydeck.shuffle()
     mydeck.move_cards(mytrialhand,13)
-    scen_distributions={}
+    scen=scenarios()
     for i in range(num):
     	theirtrialhand=Hand()
     	mydeck.move_cards(theirtrialhand,13)
-    	theirtrialhand.get_bid()
-    	scen_distributions[deepcopy(theirtrialhand)]= EvalNormalPdf(theirbid, theirtrialhand.bid-.2,3.0/5)
-    	theirtrialhand.move_cards(mydeck,13)
+    	scen.Set(theirtrialhand,1)
+       	theirtrialhand.move_cards(mydeck,13)
     	mydeck.shuffle()
-    return scen_distributions, mytrialhand
+    scen.Update(self,theirbid)
+    print scen.MaxLike()
+
 
 if __name__ == '__main__':
 	mydeck=Deck()
 	theirbid=5
-	dist,mytrialhand=run_scenarios(mydeck,theirbid,1000)
-	hands=[]
-	for key, value in dist.items():
-		hands.append((value,key))
-	hands.sort(reverse=True)
-	print 'Their bid was ',theirbid, '\n My hand was:\n', mytrialhand, '\n\n Their most likely hands are '
-	print hands[0][1], '\n Prob = ', hands[0][0], '\n\n', hands[1][1], '\n Prob = ', hands[1][0], '\n\n', hands[2][1], '\n Prob = ', hands[2][0] 
+	run_scenarios(mydeck,theirbid,1000)
+#	dist,mytrialhand=run_scenarios(mydeck,theirbid,1000)
+#	hands=[]
+#	for key, value in dist.items():
+#		hands.append((value,key))
+#	hands.sort(reverse=True)
+#	print 'Their bid was ',theirbid, '\n My hand was:\n', mytrialhand, '\n\n Their most likely hands are '
+#	print hands[0][1], '\n Prob = ', hands[0][0], '\n\n', hands[1][1], '\n Prob = ', hands[1][0], '\n\n', hands[2][1], '\n Prob = ', hands[2][0] 
