@@ -11,7 +11,7 @@ Deck: represents a deck of cards
 Hand: represents a hand of cards
 
 """
-
+import thinkbayes2
 from thinkbayes2 import *
 from thinkplot	 import *
 from copy 		 import deepcopy
@@ -107,40 +107,33 @@ class Deck(object):
 class Hand(Deck):
     """Represents a hand of playing cards."""
   
-    def __init__(self, label='', d={},bid=None):
+    def __init__(self, label=''):
         self.cards = []
         self.label = label
-        self.d     = {}
-        self.bid   = self.get_bid()
+        self.bid   = 0
 
-    def make_pmf(self):
-    	for card in self.cards:
-    		self.d[Card.rank_names[card.rank],Card.suit_names[card.suit]]=card.prob
-    	#print self.d
     def get_bid(self):
-    	self.make_pmf()
-    	probs=self.d.values()
-    	bid= 0
-    	for val in probs:
+    	d={}
+    	bid=0
+    	for card in self.cards:
+    		d[Card.rank_names[card.rank],Card.suit_names[card.suit]]=card.prob
+    	for val in d.values():
     		bid=bid+val
     	return bid
-class Scenarios(Pmf):
+    def update(self):
+    	self.bid = self.get_bid()
+class Scenarios(thinkbayes2.Pmf):
 	"""okaywhatthefuck"""
-	def __init__(self, hypos=[]):
-		Pmf.__init__(self)
-		for hypo in hypos:
-			self.Set(hypo, 1)
-		self.Normalize()
-
 	def Likelihood(self,data,hypo):
-		guess = NormalPdf(hypo.bid,3.0/5)
-		return guess.density(data)
+		guess = NormalPdf(hypo.bid-.5,3.0/5)
+		#thinkplot.Pdf(guess)
+		#thinkplot.Show()
+		return guess.Density(data)
 
 	def Update(self, data):
 		for hypo in self.Values():
 			like = self.Likelihood(data, hypo)
 			self.Mult(hypo, like)
-		return self.Normalize()
 
 def run_scenarios(mydeck, theirbid, num):
     """runs a number of scenarios of possible hand combinations 
@@ -151,25 +144,26 @@ def run_scenarios(mydeck, theirbid, num):
     mytrialhand= Hand()
     mydeck.shuffle()
     mydeck.move_cards(mytrialhand,13)
-    scen=scenarios()
+    scen=Scenarios()
     for i in range(num):
     	theirtrialhand=Hand()
     	mydeck.move_cards(theirtrialhand,13)
-    	scen.Set(theirtrialhand,1)
+    	theirtrialhand.update()
+    	scen.Set(deepcopy(theirtrialhand),1)
        	theirtrialhand.move_cards(mydeck,13)
     	mydeck.shuffle()
-    scen.Update(self,theirbid)
-    print scen.MaxLike()
+    scen.Update(theirbid)
+    itms=[]
+    for key, value in scen.d.items():
+    	itms.append((value,key))
+    return sorted(itms, reverse=True)[:5], mytrialhand
 
 
 if __name__ == '__main__':
 	mydeck=Deck()
 	theirbid=5
-	run_scenarios(mydeck,theirbid,1000)
-#	dist,mytrialhand=run_scenarios(mydeck,theirbid,1000)
-#	hands=[]
-#	for key, value in dist.items():
-#		hands.append((value,key))
-#	hands.sort(reverse=True)
-#	print 'Their bid was ',theirbid, '\n My hand was:\n', mytrialhand, '\n\n Their most likely hands are '
+	tophands, mytrialhand = run_scenarios(mydeck,theirbid,1000)
+	print 'Their bid was ',theirbid, '\n My hand was:\n', mytrialhand, '\n\n Their most likely hands are '
+	for pair in tophands:
+		print '\n', pair[1], '\n Probability \n', pair[0], '\n\n'
 #	print hands[0][1], '\n Prob = ', hands[0][0], '\n\n', hands[1][1], '\n Prob = ', hands[1][0], '\n\n', hands[2][1], '\n Prob = ', hands[2][0] 
