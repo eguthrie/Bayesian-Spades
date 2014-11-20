@@ -123,17 +123,18 @@ class Hand(Deck):
     def update(self):
     	self.bid = self.get_bid()
 class Scenarios(thinkbayes2.Pmf):
-	"""okaywhatthefuck"""
+	"""PMF for scenarios of hands"""
 	def Likelihood(self,data,hypo):
 		guess = NormalPdf(hypo.bid-.5,3.0/5)
-		#thinkplot.Pdf(guess)
-		#thinkplot.Show()
+		thinkplot.Pdf(guess)
+		thinkplot.Show()
 		return guess.Density(data)
 
 	def Update(self, data):
 		for hypo in self.Values():
 			like = self.Likelihood(data, hypo)
 			self.Mult(hypo, like)
+		self.Normalize()
 
 def run_scenarios(mydeck, theirbid, num):
     """runs a number of scenarios of possible hand combinations 
